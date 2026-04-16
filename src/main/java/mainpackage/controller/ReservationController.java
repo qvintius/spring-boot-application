@@ -1,6 +1,6 @@
 package mainpackage.controller;
 
-import mainpackage.model.Reservation;
+import mainpackage.model.ReservationDTO;
 import mainpackage.service.ReservationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class ReservationController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Reservation> getReservationById(@PathVariable Long id) {
+    public ResponseEntity<ReservationDTO> getReservationById(@PathVariable Long id) {
         logger.info("getReservationById");
         try{
             return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationById(id));
@@ -35,23 +35,23 @@ public class ReservationController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<Reservation>> getAllReservations() {
+    public ResponseEntity<List<ReservationDTO>> getAllReservations() {
         return ResponseEntity.ok(reservationService.getAllReservations());
     }
 
     @PostMapping("")
-    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservationToCreate) {
+    public ResponseEntity<ReservationDTO> createReservation(@RequestBody ReservationDTO reservationDTOToCreate) {
         logger.info("createReservation");
-        Reservation reservation = reservationService.createReservation(reservationToCreate);
-        return ResponseEntity.status(HttpStatus.CREATED).header("test-header", "123").body(reservation);
+        ReservationDTO reservationDTO = reservationService.createReservation(reservationDTOToCreate);
+        return ResponseEntity.status(HttpStatus.CREATED).header("test-header", "123").body(reservationDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Reservation> updateReservation(@PathVariable Long id, @RequestBody Reservation reservationToUpdate) {
+    public ResponseEntity<ReservationDTO> updateReservation(@PathVariable Long id, @RequestBody ReservationDTO reservationDTOToUpdate) {
         logger.info("updateReservation");
-        Reservation reservation = reservationService.updateReservation(id, reservationToUpdate);
+        ReservationDTO reservationDTO = reservationService.updateReservation(id, reservationDTOToUpdate);
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(reservation);
+            return ResponseEntity.status(HttpStatus.OK).body(reservationDTO);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
@@ -69,9 +69,9 @@ public class ReservationController {
     }
 
     @PostMapping("/{id}/approve")
-    public ResponseEntity<Reservation> approveReservation(@PathVariable Long id) {
+    public ResponseEntity<ReservationDTO> approveReservation(@PathVariable Long id) {
         logger.info("approveReservation {}", id);//подтверждение бронирования
-        Reservation reservation = reservationService.approveReservation(id);
-        return ResponseEntity.status(HttpStatus.OK).body(reservation);
+        ReservationDTO reservationDTO = reservationService.approveReservation(id);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationDTO);
     }
 }
