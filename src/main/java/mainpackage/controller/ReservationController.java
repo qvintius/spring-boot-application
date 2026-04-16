@@ -1,5 +1,6 @@
 package mainpackage.controller;
 
+import jakarta.validation.Valid;
 import mainpackage.model.ReservationDTO;
 import mainpackage.service.ReservationService;
 import org.slf4j.Logger;
@@ -36,14 +37,14 @@ public class ReservationController {
     }
 
     @PostMapping("")
-    public ResponseEntity<ReservationDTO> createReservation(@RequestBody ReservationDTO reservationDTOToCreate) {
+    public ResponseEntity<ReservationDTO> createReservation(@Valid @RequestBody ReservationDTO reservationDTOToCreate) {
         logger.info("createReservation");
         ReservationDTO reservationDTO = reservationService.createReservation(reservationDTOToCreate);
         return ResponseEntity.status(HttpStatus.CREATED).header("test-header", "123").body(reservationDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ReservationDTO> updateReservation(@PathVariable Long id, @RequestBody ReservationDTO reservationDTOToUpdate) {
+    public ResponseEntity<ReservationDTO> updateReservation(@PathVariable Long id, @Valid @RequestBody ReservationDTO reservationDTOToUpdate) {
         logger.info("updateReservation");
         ReservationDTO reservationDTO = reservationService.updateReservation(id, reservationDTOToUpdate);
         try {

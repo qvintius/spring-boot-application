@@ -42,8 +42,11 @@ public class ReservationService {
     }
 
     public ReservationDTO createReservation(ReservationDTO reservationDTOToCreate) {
-        if (reservationDTOToCreate.getId() != null || reservationDTOToCreate.getStatus() != null) {
+        if (reservationDTOToCreate.getStatus() != null) {
             throw new IllegalArgumentException("Id & status should be empty");
+        }
+        if (!validDates(reservationDTOToCreate)) {
+            throw new IllegalArgumentException("Start date should be before end date and they should not be equals");
         }
 
         ReservationEntity reservationEntity = modelMapper.map(reservationDTOToCreate, ReservationEntity.class);
@@ -59,6 +62,9 @@ public class ReservationService {
         if (!reservationEntity.getStatus().equals(ReservationStatus.PENDING)) {
             throw new IllegalArgumentException("Reservation can not be edited with status %s".formatted(reservationEntity.getStatus()));
         }
+        if (!validDates(reservationDTOToUpdate)) {
+            throw new IllegalArgumentException("Start date should be before end date and they should not be equals");
+        }
 
         reservationEntity = modelMapper.map(reservationDTOToUpdate, ReservationEntity.class);
         reservationEntity.setId(id);//оставлять айди и статус
@@ -71,8 +77,10 @@ public class ReservationService {
 
     @Transactional
     public void cancelReservation(Long id) {
-        if (!reservationRepository.existsById(id)) {
-            throw new NoSuchElementException("Reservation not found with id %s".formatted(id));
+        ReservationEntity reservationEntity = reservationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Reservation not found with id %s".formatted(id)));
+        //отменять можно только неподтверждённые и неотменённые бронирования
+        if (reservationEntity.getStatus() != ReservationStatus.PENDING) {
+            throw new IllegalStateException("Reservation can not be cancelled with status %s".formatted(reservationEntity.getStatus()));
         }
 
 
@@ -97,6 +105,12 @@ public class ReservationService {
 
 
         return reservationDTO;
+    }
+
+    private Boolean validDates(ReservationDTO reservationDTO) {
+        if (reservationDTO.getStartDate().isBefore(reservationDTO.getEndDate()))
+            return true;
+        return false;
     }
 
     private Boolean crosWithOtherReservations(ReservationEntity reservationEntity) {
