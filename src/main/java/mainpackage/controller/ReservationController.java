@@ -32,8 +32,9 @@ public class ReservationController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<ReservationDTO>> getAllReservations() {
-        return ResponseEntity.ok(reservationService.getAllReservations());
+    public ResponseEntity<List<ReservationDTO>> getAllReservations(@RequestBody Filter filter) {
+
+        return ResponseEntity.ok(reservationService.getAllReservationsByFilter(filter));
     }
 
     @PostMapping("")

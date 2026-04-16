@@ -1,6 +1,8 @@
 package mainpackage.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import mainpackage.availability.ReservationAvailabilityService;
+import mainpackage.controller.Filter;
 import mainpackage.model.ReservationDTO;
 import mainpackage.model.ReservationEntity;
 import mainpackage.model.ReservationStatus;
@@ -8,6 +10,7 @@ import mainpackage.repository.ReservationRepository;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +22,12 @@ public class ReservationService {
 
     private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
     private final ReservationRepository reservationRepository;
+    private final ReservationAvailabilityService reservationAvailabilityService;
     private final ModelMapper modelMapper;
 
-    public ReservationService(ReservationRepository reservationRepository, ModelMapper modelMapper) {
+    public ReservationService(ReservationRepository reservationRepository, ReservationAvailabilityService reservationAvailabilityService, ModelMapper modelMapper) {
         this.reservationRepository = reservationRepository;
+        this.reservationAvailabilityService = reservationAvailabilityService;
         this.modelMapper = modelMapper;
     }
 
@@ -33,9 +38,15 @@ public class ReservationService {
         return reservationDTO;
     }
 
-    public List<ReservationDTO> getAllReservations() {
+    public List<ReservationDTO> getAllReservationsByFilter(Filter filter) {
         List<ReservationDTO> reservationDTOS = new ArrayList<>();
-        List<ReservationEntity> allEntities = reservationRepository.findAll();
+
+//        List<ReservationEntity> allEntities = reservationRepository.findAll();
+        Integer pageSize = filter.getPageSize() != null ? filter.getPageSize() : 10;
+        Integer pageNumber = filter.getPageNumber() != null ? filter.getPageNumber() : 0;
+        Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
+        List<ReservationEntity> allEntities = reservationRepository.searchAllByFilter(filter.getRoomId(), filter.getUserId(), pageable);
+
         reservationDTOS = allEntities.stream().map(entity -> modelMapper.map(entity, ReservationDTO.class)).collect(Collectors.toList());
 
         return reservationDTOS;
@@ -94,7 +105,7 @@ public class ReservationService {
         if (!reservationEntity.getStatus().equals(ReservationStatus.PENDING)) {
             throw new IllegalArgumentException("Reservation can not be approved with status %s".formatted(reservationEntity.getStatus()));
         }
-        if (crosWithOtherReservations(reservationEntity)) {
+        if (reservationAvailabilityService.crosWithOtherReservations(reservationEntity.getId(), reservationEntity.getRoomId(), reservationEntity.getStartDate(), reservationEntity.getEndDate(), reservationEntity.getStatus())) {
             throw new IllegalArgumentException("Reservation can not be approved with cross other reservation's dates %s %s".formatted(reservationEntity.getStartDate(), reservationEntity.getEndDate()));
         }
 
@@ -111,23 +122,6 @@ public class ReservationService {
         if (reservationDTO.getStartDate().isBefore(reservationDTO.getEndDate()))
             return true;
         return false;
-    }
-
-    private Boolean crosWithOtherReservations(ReservationEntity reservationEntity) {
-        Boolean t = false;//совпадения с другими комнатами
-        List<ReservationEntity> allReservations = reservationRepository.findAll();
-        for (ReservationEntity existingReservation : allReservations) {
-            if (existingReservation.getId().equals(reservationEntity.getId()))//одна и та же бронь (объект)
-                continue;
-            if (!existingReservation.getRoomId().equals(reservationEntity.getRoomId()))//не одна и та же комната
-                continue;
-            if (!existingReservation.getStatus().equals(ReservationStatus.APPROVED))//не подтверждённая бронь
-                continue;
-            if (reservationEntity.getStartDate().isBefore(existingReservation.getEndDate()) && reservationEntity.getEndDate().isAfter(existingReservation.getStartDate()))//пересечение дат
-                t = true;
-
-        }
-        return t;
     }
 
 }
