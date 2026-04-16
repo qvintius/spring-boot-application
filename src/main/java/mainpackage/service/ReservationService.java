@@ -15,16 +15,12 @@ import java.util.stream.Collectors;
 @Service
 public class ReservationService {
 
-    private final AtomicLong countId;
-    private final Map<Long, ReservationDTO> reservationsMap;
     private final ReservationRepository reservationRepository;
     private final ModelMapper modelMapper;
 
     public ReservationService(ReservationRepository reservationRepository, ModelMapper modelMapper) {
         this.reservationRepository = reservationRepository;
         this.modelMapper = modelMapper;
-        this.reservationsMap = new HashMap<>();
-        countId = new AtomicLong();
     }
 
     public ReservationDTO getReservationById(Long id) {
@@ -79,9 +75,6 @@ public class ReservationService {
     }
 
     public ReservationDTO approveReservation(Long id) {
-        if (!reservationRepository.existsById(id)) {
-            throw new NoSuchElementException("Reservation not found with id %s".formatted(id));
-        }
         ReservationEntity reservationEntity = reservationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Reservation not found with id %s".formatted(id)));
 
         if (!reservationEntity.getStatus().equals(ReservationStatus.PENDING)) {
@@ -102,8 +95,8 @@ public class ReservationService {
 
     private Boolean crosWithOtherReservations(ReservationEntity reservationEntity) {
         Boolean t = false;//совпадения с другими комнатами
-
-        for (ReservationEntity existingReservation : reservationRepository.findAll()) {
+        List<ReservationEntity> allReservations = reservationRepository.findAll();
+        for (ReservationEntity existingReservation : allReservations) {
             if (existingReservation.getId().equals(reservationEntity.getId()))//одна и та же бронь (объект)
                 continue;
             if (!existingReservation.getRoomId().equals(reservationEntity.getRoomId()))//не одна и та же комната
