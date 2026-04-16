@@ -27,11 +27,7 @@ public class ReservationController {
     @GetMapping("/{id}")
     public ResponseEntity<ReservationDTO> getReservationById(@PathVariable Long id) {
         logger.info("getReservationById");
-        try{
-            return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationById(id));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationById(id));
     }
 
     @GetMapping("")
@@ -57,15 +53,11 @@ public class ReservationController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/cancel")
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
         logger.info("deleteReservation");
-        try {
-            reservationService.deleteReservation(id);
-            return ResponseEntity.ok().build();
-        } catch (NoSuchElementException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        reservationService.cancelReservation(id);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/approve")

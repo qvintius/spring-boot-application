@@ -6,15 +6,18 @@ import mainpackage.model.ReservationEntity;
 import mainpackage.model.ReservationStatus;
 import mainpackage.repository.ReservationRepository;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
 public class ReservationService {
 
+    private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
     private final ReservationRepository reservationRepository;
     private final ModelMapper modelMapper;
 
@@ -66,12 +69,15 @@ public class ReservationService {
         return reservationDTOToUpdate;
     }
 
-    public void deleteReservation(Long id) {
+    @Transactional
+    public void cancelReservation(Long id) {
         if (!reservationRepository.existsById(id)) {
             throw new NoSuchElementException("Reservation not found with id %s".formatted(id));
         }
 
-        reservationRepository.deleteById(id);
+
+        reservationRepository.updateStatus(id, ReservationStatus.CANCELLED);
+        log.info("Reservation with id {} has been cancelled", id);
     }
 
     public ReservationDTO approveReservation(Long id) {
