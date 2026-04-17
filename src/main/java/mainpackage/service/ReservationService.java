@@ -105,6 +105,7 @@ public class ReservationService {
         if (!reservationEntity.getStatus().equals(ReservationStatus.PENDING)) {
             throw new IllegalArgumentException("Reservation can not be approved with status %s".formatted(reservationEntity.getStatus()));
         }
+        //is available to approve
         if (reservationAvailabilityService.crosWithOtherReservations(reservationEntity.getId(), reservationEntity.getRoomId(), reservationEntity.getStartDate(), reservationEntity.getEndDate(), reservationEntity.getStatus())) {
             throw new IllegalArgumentException("Reservation can not be approved with cross other reservation's dates %s %s".formatted(reservationEntity.getStartDate(), reservationEntity.getEndDate()));
         }
@@ -118,7 +119,7 @@ public class ReservationService {
         return reservationDTO;
     }
 
-    private Boolean validDates(ReservationDTO reservationDTO) {
+    public Boolean validDates(ReservationDTO reservationDTO) {
         if (reservationDTO.getStartDate().isBefore(reservationDTO.getEndDate()))
             return true;
         return false;

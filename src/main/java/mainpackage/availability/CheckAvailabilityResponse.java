@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CheckAvailabilityResponse {
-    String message;
-    AvailabilityStatus status;
+
+    private String message;
+    private AvailabilityStatus status;
 
 }

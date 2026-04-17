@@ -18,12 +18,9 @@ public class ReservationAvailabilityService {
         this.reservationRepository = reservationRepository;
     }
 
-    public CheckAvailabilityResponse checkAvailability(CheckAvailabilityRequest checkAvailabilityRequest) {
-        CheckAvailabilityResponse checkAvailabilityResponse = new CheckAvailabilityResponse();
-        return checkAvailabilityResponse;
-    }
-
     public Boolean crosWithOtherReservations(Long id, Long roomId, LocalDate startDate, LocalDate endDate, ReservationStatus status) {
+        if (startDate.isBefore(endDate))
+            throw new IllegalArgumentException("Start date must be before end date");
         //совпадения с другими комнатами
         List<Long> conflictReservationIds = reservationRepository.findAllConflictReservationIds(id, roomId, startDate, endDate, status);
         if (conflictReservationIds.isEmpty())

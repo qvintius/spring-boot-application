@@ -11,12 +11,14 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CheckAvailabilityRequest {
-    @NotNull
-    Long roomId;
-    @NotNull
-    LocalDate startDate;
-    @NotNull
-    LocalDate endDate;
 
+    @NotNull
+    private Long id;
+    @NotNull
+    private Long roomId;
+    @NotNull
+    private LocalDate startDate;
+    @NotNull
+    private LocalDate endDate;
 
 }
